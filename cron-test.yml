@@ -1,0 +1,22 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cron-test
+  namespace: iankwatts-tools
+spec:
+  schedule: '*/5 * * * *'
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: cron-test
+              image: >-
+                image-registry.openshift-image-registry.svc:5000/iankwatts-tools/utility-server@sha256:3e0dc4656d7bf2cc47552621f5d07886a0ec10ff0b1b8fec60df91b8307f9640
+              args:
+                - /bin/sh
+                - '-c'
+                - ls -lR /home/util/
+          restartPolicy: OnFailure
+

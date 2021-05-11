@@ -1,0 +1,32 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: utility-server
+  namespace: iankwatts-tools
+  resourceVersion: '104856850'
+spec:
+  nodeSelector: null
+  source:
+    type: Git
+    git:
+      uri: https://github.com/IanKWatts/utility-server
+      ref: main
+    dockerfile: |
+      FROM centos:centos8
+
+      RUN yum -y update && yum -y install curl git jq nmap-ncat python38 python38-pip which && pip3 install github-backup
+
+      COPY ./scripts .
+
+      CMD while true; do sleep 60; done
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'utility-server:latest'
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  postCommit: {}
+  runPolicy: Serial
