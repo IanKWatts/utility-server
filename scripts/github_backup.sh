@@ -2,12 +2,13 @@
 #
 # github_backup.sh
 #
-#     put the repo archive file in S3 using the 'aws' CLI
-# -------------------------------------------------------
+# Back up GitHub repositories and copy them to an S3 bucket.
+# * repos to back up are defined in a ConfigMap
+# * S3 creds are in a Secret
+# ----------------------------------------------------------
 
 BUCKET=github-backup
 BASEDIR=/tmp/github-backups
-
 
 DATE=`date "+%Y-%m-%d"`
 LOGDIR="${BASEDIR}/logs"
@@ -21,6 +22,8 @@ if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 # Read the repo list from the config map file
 # -------------------------------------------
 source /etc/github-repos-to-back-up/github-repos-to-back-up.sh
+S3_ID=`cat /etc/github-backups-s3-creds/id`
+S3_SECRET=`cat /etc/github-backups-s3-creds/secret`
 
 log() {
   echo $1
