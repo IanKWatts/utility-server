@@ -14,11 +14,9 @@ spec:
     dockerfile: |
       FROM centos:centos8
 
-      RUN yum -y update && yum -y install curl git jq nmap-ncat python38 python38-pip which && pip3 install github-backup
+      RUN yum -y update && yum -y install curl git jq nmap-ncat python38 python38-pip which && pip3 install github-backup && mkdir /scripts
 
-      COPY ./scripts .
-
-      CMD while true; do sleep 60; done
+      COPY ./scripts /scripts/
   strategy:
     type: Docker
   output:

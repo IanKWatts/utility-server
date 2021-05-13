@@ -2,84 +2,77 @@
 #
 # github_backup.sh
 #
-# For the given GitHub orgs:
-#   get a list of all repos in each org - for each repo:
-#     get an updated copy
-#     tar/compress the repo
 #     put the repo archive file in S3 using the 'aws' CLI
 # -------------------------------------------------------
 
-ORGS=( bcgov-c BCDevOps )
-TOKEN=
-BUCKET=github-backups
+BUCKET=github-backup
 BASEDIR=/tmp/github-backups
 
-LOGDIR="${BASEDIR}/logs"
+
 DATE=`date "+%Y-%m-%d"`
+LOGDIR="${BASEDIR}/logs"
 LOGFILE="${LOGDIR}/github_backup_${DATE}"
 
-# Create a directory for logs
-# ---------------------------
-if [ ! -d $LOGDIR ]; then echo "Creating log dir $LOGDIR"; mkdir -p $LOGDIR; fi
-if [ ! -f ${LOGFILE} ]; then touch ${LOGFILE}; fi
+# Ensure that our directories exist
+# ---------------------------------
+if [ ! -d $BASEDIR ]; then mkdir -p $BASEDIR; fi
+if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 
-function log() {
+# Read the repo list from the config map file
+# -------------------------------------------
+source /etc/github-repos-to-back-up/github-repos-to-back-up.sh
+
+log() {
   echo $1
   echo $1 >> ${LOGFILE}
 }
 
-log "Executing $0"
+do_backup() {
+  ITEM=$1
+  TYPE=$2
 
-# Make backups for each org
-# -------------------------
-for org in ${ORGS[@]}; do
+  OWNER_REPO=`echo $ITEM | cut -d ":" -f 1`
+  MODE=`echo $ITEM | cut -d ":" -f 2`
+  OWNER=`echo $OWNER_REPO | cut -d "/" -f 1`
+  REPO=`echo $OWNER_REPO | cut -d "/" -f 2`
+  THIS_BACKUP_DIR="${BACKUP_DIR}/${OWNER}"
+  if [ ! -d $THIS_BACKUP_DIR ]; then mkdir -p $THIS_BACKUP_DIR; fi
+  if [ ! -d ${THIS_BACKUP_DIR}/tmp ]; then mkdir -p ${THIS_BACKUP_DIR}/tmp; fi
 
-  log "Starting backups for org: $org"
+  if [ "$TYPE" == "user" ]; then TYPEARG=""; else TYPEARG="--organization"; fi
+  if [ "$MODE" == "full" ]; then QUALIFIER="--all"; else QUALIFIER="--repositories"; fi
 
-  if [ ! -d $BASEDIR/$org ]; then mkdir $BASEDIR/$org; fi
-  cd $BASEDIR/$org
+  log "Starting $MODE backup of $REPO"
 
-  # Get a list of repos in this org; we'll back up each one
-  # -------------------------------------------------------
-  #REPOS=( `curl -s --header "Authorization: token $TOKEN" https//api.github.com/orgs/$org/repos | jq ".[].full_name" - | sed 's/"//g'` )
-  REPOS=( platform-gitops-gen platform-registry-services )
-  log "Found ${#REPOS[@]} repos in $org"
+  # Make the backup
+  # ---------------
+  echo "github-backup -t \$TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
 
-  for repo in ${REPOS[@]}; do
+  # Tar and compress the repo
+  # -------------------------
+  log "-  compressing backup"
+  COMPRESSED_FILE="${REPO}.tar.gz"
+  COMPRESSED_FILE_PATH="${THIS_BACKUP_DIR}/tmp/${COMPRESSED_FILE}"
+  cd $THIS_BACKUP_DIR
+  #tar czfp $BACKUP_DIR/tmp/$COMPRESSED_FILE $REPO
 
-    log "$org / $repo"
+  # Send the file to the off-site storage
+  # -------------------------------------
+  log "-  copying $COMPRESSED_FILE to storage"
+  #aws s3api put-object --bucket $BUCKET --key $COMPRESSED_FILE --body $COMPRESSED_FILE_PATH
 
-    COMPRESSED_FILE="${repo}.tar.gz"
-
-    # If we don't already have this repo locally, clone it
-    # ----------------------------------------------------
-    #if [ ! -d $repo ]; then
-    #  log "  cloning repo"
-    #  git clone --mirror https://github.com/${repo}.git
-
-    # otherwise, update the local copy
-    # --------------------------------
-    #else
-    #  log "  updating repo"
-    #  cd $repo
-    #  git fetch origin
-    #  cd ..
-    #fi
-
-    # Tar and compress the repo
-    # -------------------------
-    log "-  compressing backup"
-    #tar czfp $COMPRESSED_FILE $repo
-
-    # Send the file to the off-site storage
-    # -------------------------------------
-    log "-  copying $COMPRESSED_FILE to storage"
-    #aws s3api put-object --bucket $BUCKET --key $COMPRESSED_FILE --body $COMPRESSED_FILE
-
-    log ""
-    
-  done
+  # Remove the archive file
+  # -----------------------
+  rm $COMPRESSED_FILE_PATH
 
   log ""
+}
 
+for ITEM in ${ORG_REPOS_TO_BACK_UP[@]}; do
+  do_backup "$ITEM" "org"
 done
+
+for ITEM in ${USER_REPOS_TO_BACK_UP[@]}; do
+  do_backup "$ITEM" "user"
+done
+

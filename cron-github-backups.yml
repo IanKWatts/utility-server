@@ -10,6 +10,10 @@ spec:
     spec:
       template:
         spec:
+          volumes:
+            - name: github-backups-s3-creds-volume
+              secret:
+                secretName: github-backups-s3-creds
           containers:
             - name: github-backups
               image: >-
@@ -18,5 +22,9 @@ spec:
                 - /bin/sh
                 - '-c'
                 - /scripts/github_backup.sh
+              volumeMounts:
+                - name: github-backups-s3-creds-volume
+                  mountPath: /etc/github-backups-s3-creds
+                  readOnly: true
           restartPolicy: OnFailure
 
