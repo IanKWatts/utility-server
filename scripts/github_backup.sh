@@ -19,8 +19,8 @@ LOGFILE="${LOGDIR}/github_backup_${DATE}"
 if [ ! -d $BASEDIR ]; then mkdir -p $BASEDIR; fi
 if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 
-# Read the repo list from the config map file
-# -------------------------------------------
+# Read the repo list and S3 credentials
+# -------------------------------------
 source /etc/github-repos-to-back-up/github-repos-to-back-up.sh
 S3_ID=`cat /etc/github-backups-s3-creds/id`
 S3_SECRET=`cat /etc/github-backups-s3-creds/secret`
@@ -66,7 +66,7 @@ do_backup() {
 
   # Remove the archive file
   # -----------------------
-  rm $COMPRESSED_FILE_PATH
+  #rm $COMPRESSED_FILE_PATH
 
   log ""
 }
