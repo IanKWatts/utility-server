@@ -38,7 +38,7 @@ do_backup() {
   MODE=`echo $ITEM | cut -d ":" -f 2`
   OWNER=`echo $OWNER_REPO | cut -d "/" -f 1`
   REPO=`echo $OWNER_REPO | cut -d "/" -f 2`
-  THIS_BACKUP_DIR="${BACKUP_DIR}/${OWNER}"
+  THIS_BACKUP_DIR="${BASEDIR}/${OWNER}"
   if [ ! -d $THIS_BACKUP_DIR ]; then mkdir -p $THIS_BACKUP_DIR; fi
   if [ ! -d ${THIS_BACKUP_DIR}/tmp ]; then mkdir -p ${THIS_BACKUP_DIR}/tmp; fi
 
@@ -57,7 +57,7 @@ do_backup() {
   COMPRESSED_FILE="${REPO}.tar.gz"
   COMPRESSED_FILE_PATH="${THIS_BACKUP_DIR}/tmp/${COMPRESSED_FILE}"
   cd $THIS_BACKUP_DIR
-  #tar czfp $BACKUP_DIR/tmp/$COMPRESSED_FILE $REPO
+  #tar czfp $BASEDIR/tmp/$COMPRESSED_FILE $REPO
 
   # Send the file to the off-site storage
   # -------------------------------------
