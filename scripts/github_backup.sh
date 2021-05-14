@@ -24,6 +24,7 @@ if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 source /etc/github-repos-to-back-up/github-repos-to-back-up.sh
 S3_ID=`cat /etc/github-backups-s3-creds/id`
 S3_SECRET=`cat /etc/github-backups-s3-creds/secret`
+REPO_TOKEN=`cat /etc/github-backups-repo-creds/TOKEN`
 
 log() {
   echo $1
@@ -49,7 +50,7 @@ do_backup() {
 
   # Make the backup
   # ---------------
-  echo "github-backup -t \$TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
+  echo "github-backup -t \$REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
 
   # Tar and compress the repo
   # -------------------------
