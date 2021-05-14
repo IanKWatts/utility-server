@@ -23,6 +23,7 @@ if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 # -------------------------------------
 source /etc/github-repos-to-back-up/github-repos-to-back-up.sh
 S3_ID=`cat /etc/github-backups-s3-creds/id`
+S3_URL=`cat /etc/github-backups-s3-creds/URL`
 S3_SECRET=`cat /etc/github-backups-s3-creds/secret`
 REPO_TOKEN=`cat /etc/github-backups-repo-creds/TOKEN`
 
@@ -64,6 +65,7 @@ do_backup() {
   # -------------------------------------
   log "-  copying $COMPRESSED_FILE to storage"
   #aws s3api put-object --bucket $BUCKET --key $COMPRESSED_FILE --body $COMPRESSED_FILE_PATH
+  #mc cp $COMPRESSED_FILE_PATH s3/$BUCKET
 
   # Remove the archive file
   # -----------------------
@@ -72,6 +74,8 @@ do_backup() {
   log ""
 }
 
+# Do the backups
+# --------------
 for ITEM in ${ORG_REPOS_TO_BACK_UP[@]}; do
   do_backup "$ITEM" "org"
 done
@@ -79,4 +83,9 @@ done
 for ITEM in ${USER_REPOS_TO_BACK_UP[@]}; do
   do_backup "$ITEM" "user"
 done
+
+# Initialize minio and synchronize with the S3 bucket
+# ---------------------------------------------------
+/usr/local/bin/mc alias set s3 $S3_URL $S3_ID $S3_SECRET
+#mc mirror --overwrite --remove /backups/ s3/$BUCKET
 
