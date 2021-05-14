@@ -8,7 +8,7 @@
 # ----------------------------------------------------------
 
 BUCKET=github-backup
-BASEDIR=/tmp/github-backups
+BASEDIR=/backups
 
 DATE=`date "+%Y-%m-%d"`
 LOGDIR="${BASEDIR}/logs"
