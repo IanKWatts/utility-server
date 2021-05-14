@@ -53,8 +53,8 @@ do_backup() {
   # ---------------
   echo "github-backup -t \$REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
 
-  # Tar and compress the repo
-  # -------------------------
+  # Do we want to tar and compress the repo or just copy it over as is?
+  # -------------------------------------------------------------------
   log "-  compressing backup"
   COMPRESSED_FILE="${REPO}.tar.gz"
   COMPRESSED_FILE_PATH="${THIS_BACKUP_DIR}/tmp/${COMPRESSED_FILE}"
@@ -65,6 +65,7 @@ do_backup() {
   # -------------------------------------
   log "-  copying $COMPRESSED_FILE to storage"
   #aws s3api put-object --bucket $BUCKET --key $COMPRESSED_FILE --body $COMPRESSED_FILE_PATH
+  # For now just doing 'mc mirror' at the end of the script
   #mc cp $COMPRESSED_FILE_PATH s3/$BUCKET
 
   # Remove the archive file
@@ -86,6 +87,6 @@ done
 
 # Initialize minio and synchronize with the S3 bucket
 # ---------------------------------------------------
-/usr/local/bin/mc alias set s3 $S3_URL $S3_ID $S3_SECRET
+/usr/local/bin/mc --config-dir /tmp/.mc alias set s3 $S3_URL $S3_ID $S3_SECRET
 #mc mirror --overwrite --remove /backups/ s3/$BUCKET
 
