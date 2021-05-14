@@ -43,7 +43,7 @@ do_backup() {
   if [ ! -d ${THIS_BACKUP_DIR}/tmp ]; then mkdir -p ${THIS_BACKUP_DIR}/tmp; fi
 
   if [ "$TYPE" == "user" ]; then TYPEARG=""; else TYPEARG="--organization"; fi
-  if [ "$MODE" == "full" ]; then QUALIFIER="--all"; else QUALIFIER="--repositories"; fi
+  if [ "$MODE" == "full" ]; then QUALIFIER="--all"; else QUALIFIER="--repositories"; MODE="partial"; fi
 
   log "Starting $MODE backup of $REPO"
 
