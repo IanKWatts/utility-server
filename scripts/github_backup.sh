@@ -44,7 +44,7 @@ REPO_TOKEN=`cat /etc/github-backups-repo-creds/TOKEN`
 
 log() {
   echo "--> $1"
-  echo "--> $1" >> ${LOGFILE}
+  #echo "--> $1" >> ${LOGFILE}
 }
 
 do_backup() {
@@ -68,7 +68,7 @@ do_backup() {
 
   # Make the backup
   # ---------------
-  log "github-backup -t \$REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
+  log "github-backup -t $REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
   if [ ! -z "$DRYRUN" ]; then
     github-backup -t $REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL
   fi
