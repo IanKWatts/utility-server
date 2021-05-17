@@ -78,7 +78,9 @@ do_backup() {
   log "-  compressing backup"
   COMPRESSED_FILE="${REPO}.tar.gz"
   COMPRESSED_FILE_PATH="${THIS_ARCHIVE_DIR}/${COMPRESSED_FILE}"
+  log "cd $THIS_BACKUP_DIR"
   cd $THIS_BACKUP_DIR
+  ls -l
   tar czfp $COMPRESSED_FILE_PATH $REPO
 
   log ""
