@@ -73,8 +73,8 @@ do_backup() {
     github-backup -t $REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL
   fi
 
-  # Do we want to tar and compress the repo or just copy it over as is?
-  # -------------------------------------------------------------------
+  # Create a compressed archive file of the repo
+  # --------------------------------------------
   log "-  compressing backup"
   COMPRESSED_FILE="${REPO}.tar.gz"
   COMPRESSED_FILE_PATH="${THIS_ARCHIVE_DIR}/${COMPRESSED_FILE}"
@@ -102,15 +102,16 @@ done
 # Initialize minio and synchronize with the S3 bucket
 # ---------------------------------------------------
 log "Configuring mc for S3"
-/usr/local/bin/mc --config-dir /tmp/.mc alias set s3 $S3_URL $S3_ID $S3_SECRET
+/usr/local/bin/mc --config-dir $BASEDIR/.mc alias set s3 $S3_URL $S3_ID $S3_SECRET
 log ""
 log "Mirroring to S3..."
-#mc mirror --overwrite --remove $ARCHIVE_DIR s3/$BUCKET
-mc --config-dir /tmp/.mc mirror $ARCHIVE_DIR/ s3/$BUCKET
+# Should we include the "--remove" option?  If not, we'll probably have to do
+# manual cleanup from time to time.
+mc --config-dir $BASEDIR/.mc mirror --overwrite $ARCHIVE_DIR/ s3/$BUCKET
 log ""
 log "List bucket contents:"
 sleep 2
-mc --config-dir /tmp/.mc ls s3/$BUCKET
+mc --config-dir $BASEDIR/.mc ls s3/$BUCKET
 
 # Record end time
 # ---------------
