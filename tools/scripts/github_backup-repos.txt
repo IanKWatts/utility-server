@@ -1,0 +1,7 @@
+# Org:Repo:BackupMode:Type
+#   BackupMode can be: all, files
+#   Type: org, user
+bcgov:platform-services-registry:all:org
+bcgov-c:platform-gitops-gen:files:org
+BCDevOps:platform-services:all:org
+IanKWatts:test10:files:user
