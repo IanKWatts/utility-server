@@ -13,10 +13,25 @@ BASEDIR=/backups
 DATE=`date "+%Y-%m-%d"`
 LOGDIR="${BASEDIR}/logs"
 LOGFILE="${LOGDIR}/github_backup_${DATE}"
+ARCHIVE_DIR="${BASEDIR}/archive"
+
+# Process any command line arguments
+#   -i	Incremental backup
+#   -d	Dry run - do not do backup or copy to S3
+# ----------------------------------------------
+while getopts id arg; do
+  case "$arg" in
+    i) INCREMENTAL="--incremental";;
+    d) DRYRUN="true";;
+    *) INCREMENTAL=""
+       DRYRUN=""
+       ;;
+  esac
+done
 
 # Ensure that our directories exist
 # ---------------------------------
-if [ ! -d $BASEDIR ]; then mkdir -p $BASEDIR; fi
+if [ ! -d $ARCHIVE_DIR ]; then mkdir -p $ARCHIVE_DIR; fi
 if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 
 # Read the repo list and S3 credentials
@@ -29,7 +44,7 @@ REPO_TOKEN=`cat /etc/github-backups-repo-creds/TOKEN`
 
 log() {
   echo $1
-  echo $1 >> ${LOGFILE}
+  echo "--> $1" >> ${LOGFILE}
 }
 
 do_backup() {
@@ -41,7 +56,9 @@ do_backup() {
   OWNER=`echo $OWNER_REPO | cut -d "/" -f 1`
   REPO=`echo $OWNER_REPO | cut -d "/" -f 2`
   THIS_BACKUP_DIR="${BASEDIR}/${OWNER}"
+  THIS_ARCHIVE_DIR="${ARCHIVE_DIR}/${OWNER}"
   if [ ! -d $THIS_BACKUP_DIR ]; then mkdir -p $THIS_BACKUP_DIR; fi
+  if [ ! -d $THIS_ARCHIVE_DIR ]; then mkdir -p $THIS_ARCHIVE_DIR; fi
   if [ ! -d ${THIS_BACKUP_DIR}/tmp ]; then mkdir -p ${THIS_BACKUP_DIR}/tmp; fi
 
   if [ "$TYPE" == "user" ]; then TYPEARG=""; else TYPEARG="--organization"; fi
@@ -51,29 +68,26 @@ do_backup() {
 
   # Make the backup
   # ---------------
-  echo "github-backup -t \$REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
+  log "github-backup -t \$REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL"
+  if [ ! -z "$DRYRUN" ]; then
+    github-backup -t $REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL
+  fi
 
   # Do we want to tar and compress the repo or just copy it over as is?
   # -------------------------------------------------------------------
   log "-  compressing backup"
   COMPRESSED_FILE="${REPO}.tar.gz"
-  COMPRESSED_FILE_PATH="${THIS_BACKUP_DIR}/tmp/${COMPRESSED_FILE}"
+  COMPRESSED_FILE_PATH="${THIS_ARCHIVE_DIR}/${COMPRESSED_FILE}"
   cd $THIS_BACKUP_DIR
-  #tar czfp $BASEDIR/tmp/$COMPRESSED_FILE $REPO
-
-  # Send the file to the off-site storage
-  # -------------------------------------
-  log "-  copying $COMPRESSED_FILE to storage"
-  #aws s3api put-object --bucket $BUCKET --key $COMPRESSED_FILE --body $COMPRESSED_FILE_PATH
-  # For now just doing 'mc mirror' at the end of the script
-  #mc cp $COMPRESSED_FILE_PATH s3/$BUCKET
-
-  # Remove the archive file
-  # -----------------------
-  #rm $COMPRESSED_FILE_PATH
+  tar czfp $COMPRESSED_FILE_PATH $REPO
 
   log ""
 }
+
+# Record start time
+# -----------------
+START_TIME=`date "+%H:%M:%S"`
+log "Start time: $START_TIME"
 
 # Do the backups
 # --------------
@@ -87,8 +101,19 @@ done
 
 # Initialize minio and synchronize with the S3 bucket
 # ---------------------------------------------------
+log "Configuring mc for S3"
 /usr/local/bin/mc --config-dir /tmp/.mc alias set s3 $S3_URL $S3_ID $S3_SECRET
-#mc mirror --overwrite --remove /backups/ s3/$BUCKET
-#mc mirror $BASEDIR/ s3/$BUCKET
+log ""
+log "Mirroring to S3..."
+#mc mirror --overwrite --remove $ARCHIVE_DIR s3/$BUCKET
+mc --config-dir /tmp/.mc mirror $ARCHIVE_DIR/ s3/$BUCKET
+log ""
+log "List bucket contents:"
+sleep 2
 mc --config-dir /tmp/.mc ls s3/$BUCKET
+
+# Record end time
+# ---------------
+END_TIME=`date "+%H:%M:%S"`
+log "End time: $END_TIME"
 
