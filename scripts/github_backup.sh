@@ -87,6 +87,7 @@ done
 
 # Initialize minio and synchronize with the S3 bucket
 # ---------------------------------------------------
-/usr/local/bin/mc --config-dir /tmp/.mc alias set s3 $S3_URL $S3_ID $S3_SECRET
+echo "/usr/local/bin/mc --config-dir /tmp/.mc alias set s3 $S3_URL $S3_ID $S3_SECRET"
 #mc mirror --overwrite --remove /backups/ s3/$BUCKET
+#mc mirror $BASEDIR/ s3/$BUCKET
 
