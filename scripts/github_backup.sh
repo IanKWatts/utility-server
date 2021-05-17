@@ -73,16 +73,6 @@ do_backup() {
     github-backup -t $REPO_TOKEN $OWNER $TYPEARG --output-directory $THIS_BACKUP_DIR $QUALIFIER --private --repository $REPO $INCREMENTAL
   fi
 
-  # Create a compressed archive file of the repo
-  # --------------------------------------------
-  #log "-  compressing backup"
-  #COMPRESSED_FILE="${REPO}.tar.gz"
-  #COMPRESSED_FILE_PATH="${THIS_ARCHIVE_DIR}/${COMPRESSED_FILE}"
-  #log "cd $THIS_BACKUP_DIR"
-  #cd $THIS_BACKUP_DIR
-  #ls -l
-  #tar czfp $COMPRESSED_FILE_PATH $REPO
-
   log ""
 }
 
@@ -106,7 +96,7 @@ done
 cd ${BASEDIR}/owners/
 for OWNER in `ls`; do
   log "archiving $OWNER"
-  #tar czfp ${ARCHIVE_DIR}/${OWNER}.tar.gz $OWNER
+  tar czfp ${ARCHIVE_DIR}/${OWNER}.tar.gz $OWNER
 done
 
 # Initialize minio and synchronize with the S3 bucket
@@ -119,9 +109,6 @@ log "Mirroring to S3..."
 # manual cleanup from time to time.
 mc --config-dir $BASEDIR/.mc mirror --overwrite $ARCHIVE_DIR/ s3/$BUCKET
 log ""
-log "List bucket contents:"
-sleep 2
-mc --config-dir $BASEDIR/.mc ls s3/$BUCKET
 
 # Record end time
 # ---------------
