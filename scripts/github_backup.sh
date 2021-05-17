@@ -43,7 +43,7 @@ S3_SECRET=`cat /etc/github-backups-s3-creds/secret`
 REPO_TOKEN=`cat /etc/github-backups-repo-creds/TOKEN`
 
 log() {
-  echo $1
+  echo "--> $1"
   echo "--> $1" >> ${LOGFILE}
 }
 
