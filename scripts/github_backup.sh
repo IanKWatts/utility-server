@@ -55,7 +55,7 @@ do_backup() {
   MODE=`echo $ITEM | cut -d ":" -f 2`
   OWNER=`echo $OWNER_REPO | cut -d "/" -f 1`
   REPO=`echo $OWNER_REPO | cut -d "/" -f 2`
-  THIS_BACKUP_DIR="${BASEDIR}/${OWNER}"
+  THIS_BACKUP_DIR="${BASEDIR}/owners/${OWNER}"
   THIS_ARCHIVE_DIR="${ARCHIVE_DIR}/${OWNER}"
   if [ ! -d $THIS_BACKUP_DIR ]; then mkdir -p $THIS_BACKUP_DIR; fi
   if [ ! -d $THIS_ARCHIVE_DIR ]; then mkdir -p $THIS_ARCHIVE_DIR; fi
@@ -75,13 +75,13 @@ do_backup() {
 
   # Create a compressed archive file of the repo
   # --------------------------------------------
-  log "-  compressing backup"
-  COMPRESSED_FILE="${REPO}.tar.gz"
-  COMPRESSED_FILE_PATH="${THIS_ARCHIVE_DIR}/${COMPRESSED_FILE}"
-  log "cd $THIS_BACKUP_DIR"
-  cd $THIS_BACKUP_DIR
-  ls -l
-  tar czfp $COMPRESSED_FILE_PATH $REPO
+  #log "-  compressing backup"
+  #COMPRESSED_FILE="${REPO}.tar.gz"
+  #COMPRESSED_FILE_PATH="${THIS_ARCHIVE_DIR}/${COMPRESSED_FILE}"
+  #log "cd $THIS_BACKUP_DIR"
+  #cd $THIS_BACKUP_DIR
+  #ls -l
+  #tar czfp $COMPRESSED_FILE_PATH $REPO
 
   log ""
 }
@@ -99,6 +99,14 @@ done
 
 for ITEM in ${USER_REPOS_TO_BACK_UP[@]}; do
   do_backup "$ITEM" "user"
+done
+
+# Make compressed archives
+# ------------------------
+cd ${BASEDIR}/owners/
+for OWNER in `ls`; do
+  log "archiving $OWNER"
+  #tar czfp ${ARCHIVE_DIR}/${OWNER}.tar.gz $OWNER
 done
 
 # Initialize minio and synchronize with the S3 bucket
