@@ -37,14 +37,10 @@ if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 # Read the repo list and S3 credentials
 # -------------------------------------
 source /etc/github-repos-to-back-up/github-repos-to-back-up.sh
-S3_ID=`cat /etc/github-backups-s3-creds/id`
-S3_URL=`cat /etc/github-backups-s3-creds/URL`
-S3_SECRET=`cat /etc/github-backups-s3-creds/secret`
-REPO_TOKEN=`cat /etc/github-backups-repo-creds/TOKEN`
 
 log() {
   echo "--> $1"
-  #echo "--> $1" >> ${LOGFILE}
+  echo "--> $1" >> ${LOGFILE}
 }
 
 do_backup() {
@@ -107,8 +103,6 @@ log "Configuring mc for S3"
 /usr/local/bin/mc --config-dir $BASEDIR/.mc alias set s3 $S3_URL $S3_ID $S3_SECRET
 log ""
 log "Mirroring to S3..."
-# Should we include the "--remove" option?  If not, we'll probably have to do
-# manual cleanup from time to time.
 mc --config-dir $BASEDIR/.mc mirror --overwrite $ARCHIVE_DIR/ s3/$BUCKET
 log ""
 
