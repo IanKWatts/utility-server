@@ -34,17 +34,13 @@ done
 if [ ! -d $ARCHIVE_DIR ]; then mkdir -p $ARCHIVE_DIR; fi
 if [ ! -d $LOGDIR ]; then mkdir -p $LOGDIR; fi
 
-# Read the repo list and S3 credentials
-# -------------------------------------
+# Read the repo list
+# ------------------
 source /etc/github-repos-to-back-up/github-repos-to-back-up.sh
-S3_ID=`cat /etc/github-backups-s3-creds/id`
-S3_URL=`cat /etc/github-backups-s3-creds/URL`
-S3_SECRET=`cat /etc/github-backups-s3-creds/secret`
-REPO_TOKEN=`cat /etc/github-backups-repo-creds/TOKEN`
 
 log() {
   echo "--> $1"
-  #echo "--> $1" >> ${LOGFILE}
+  echo "--> $1" >> ${LOGFILE}
 }
 
 do_backup() {

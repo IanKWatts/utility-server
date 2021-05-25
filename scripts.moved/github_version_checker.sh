@@ -2,9 +2,9 @@
 #
 # github-version-checker.sh
 #
-# Check for updates to third-party software that we use and send out a 
-# notification when a new version is released.
-# --------------------------------------------------------------------
+# Check for updates to third-party software that we use.
+# Send out a notification when a new version is released.
+# -------------------------------------------------------
 
 
 # Array of GitHub projects to check for version
