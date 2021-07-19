@@ -94,7 +94,7 @@ done
 cd ${BASEDIR}/owners/
 for OWNER in `ls`; do
   log "archiving $OWNER"
-  tar czfp ${ARCHIVE_DIR}/${OWNER}.tar.gz $OWNER
+  tar czfp ${THIS_ARCHIVE_DIR}/${OWNER}-${DATE}.tar.gz $OWNER
 done
 
 # Initialize minio and synchronize with the S3 bucket
